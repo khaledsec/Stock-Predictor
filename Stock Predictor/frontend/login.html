@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Stock Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-2xl">
+        <h2 class="text-3xl font-bold text-center text-blue-400 mb-6">Stock Predictor</h2>
+        <h3 class="text-xl font-semibold text-center mb-6">Welcome Back</h3>
+        
+        <div class="space-y-4">
+            <input type="text" id="username" placeholder="Username" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+            <input type="password" id="password" placeholder="Password" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
+            
+            <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded font-bold transition mt-4">Login</button>
+            
+            <p id="auth-message" class="text-center text-red-400 text-sm mt-4 min-h-[20px]"></p>
+            
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-400">Don't have an account? 
+                    <a href="register.html" class="text-blue-400 hover:underline">Register here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+        
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'index.html';
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const msgBox = document.getElementById('auth-message');
+
+            if (!username || !password) {
+                msgBox.style.color = "#f87171";
+                msgBox.innerText = "Please enter both username and password.";
+                return;
+            }
+
+            try {
+                msgBox.style.color = "#60a5fa";
+                msgBox.innerText = "Logging in...";
+                
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('username', username);
+                    window.location.href = 'index.html'; 
+                } else {
+                    msgBox.style.color = "#f87171";
+                    msgBox.innerText = data.detail || "Invalid credentials.";
+                }
+            } catch (err) {
+                msgBox.style.color = "#f87171";
+                msgBox.innerText = "Cannot connect to server. Is backend running?";
+            }
+        }
+    </script>
+</body>
+</html>

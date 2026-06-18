@@ -1,0 +1,9 @@
+https://www.kaggle.com/datasets/camnugent/sandp500 > kaggle
+https://finance.yahoo.com/quote/AAPL/history/ > yfinance
+https://finance.yahoo.com/quote/MSFT/history/ > yfinance
+https://finance.yahoo.com/quote/AMZN/history/ > yfinance
+https://finance.yahoo.com/quote/SPY/history/ > yfinance
+https://finance.yahoo.com/quote/TSLA/history/ > yfinance
+https://finance.yahoo.com/quote/GOOGL/history/ > yfinance
+https://finance.yahoo.com/quote/QQQ/history/ > yfinance
+https://finance.yahoo.com/quote/BTC-USD/history/ > yfinance

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Stock Predictor</title>
+    <script>if(sessionStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'login.html';</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>.status-training{color:#60a5fa}.status-success{color:#34d399}.status-error{color:#f87171}.history-log{margin-top:1rem;padding-top:1rem;border-top:1px solid #374151;text-align:left;font-size:0.875rem;color:#d1d5db}.epoch-list{max-height:150px;overflow-y:auto;background-color:#111827;border-radius:0.375rem;padding:0.5rem;font-family:monospace;list-style-type:none;margin:0}.epoch-list li{padding:0.125rem 0.25rem;white-space:nowrap}</style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-400">📈 Stock Predictor (Live)</h1>
+            <div class="flex items-center gap-4">
+                <span id="welcome-msg" class="text-gray-300"></span>
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-bold transition">Logout</button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">1. Select Live Stock</h2>
+                    
+                    <select id="ticker-select" class="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-blue-500">
+                        <optgroup label="Technology Giants">
+                            <option value="AAPL">Apple (AAPL)</option>
+                            <option value="MSFT">Microsoft (MSFT)</option>
+                            <option value="GOOGL">Google (GOOGL)</option>
+                            <option value="AMZN">Amazon (AMZN)</option>
+                            <option value="META">Meta / Facebook (META)</option>
+                        </optgroup>
+                        
+                        <optgroup label="Semiconductors & Hardware">
+                            <option value="NVDA">Nvidia (NVDA)</option>
+                            <option value="AMD">Advanced Micro Devices (AMD)</option>
+                            <option value="INTC">Intel (INTC)</option>
+                        </optgroup>
+                        
+                        <optgroup label="Auto & Entertainment">
+                            <option value="TSLA">Tesla (TSLA)</option>
+                            <option value="NFLX">Netflix (NFLX)</option>
+                            <option value="DIS">Walt Disney (DIS)</option>
+                        </optgroup>
+                        
+                        <optgroup label="Finance & Banking">
+                            <option value="V">Visa (V)</option>
+                            <option value="JPM">JPMorgan Chase (JPM)</option>
+                            <option value="BAC">Bank of America (BAC)</option>
+                        </optgroup>
+
+                        <optgroup label="Retail & Consumer Goods">
+                            <option value="WMT">Walmart (WMT)</option>
+                            <option value="SBUX">Starbucks (SBUX)</option>
+                            <option value="NKE">Nike (NKE)</option>
+                            <option value="KO">Coca-Cola (KO)</option>
+                        </optgroup>
+
+                        <optgroup label="Healthcare & Aerospace">
+                            <option value="JNJ">Johnson & Johnson (JNJ)</option>
+                            <option value="BA">Boeing (BA)</option>
+                        </optgroup>
+                    </select>
+
+                    <button id="train-button" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Fetch Live Data & Train Model</button>
+                    <div id="training-status" class="mt-4 text-center"></div>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">2. Tomorrow's Prediction</h2>
+                    <div id="prediction-box" class="text-center py-4">
+                        <div id="loader" class="hidden loader ease-linear rounded-full border-4 border-t-4 border-gray-500 h-12 w-12 mx-auto mb-4"></div>
+                        <p id="prediction-text" class="text-lg text-gray-400">Waiting for model...</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">📰 Latest News</h2>
+                    <div id="news-box" class="space-y-3 text-sm">
+                        <p class="text-gray-500">Select a stock to see news.</p>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl flex-grow">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Model Evaluation: Real vs. Predicted</h2>
+                    <div class="h-[400px]">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+                <div id="metrics-box" class="bg-gray-800 p-6 rounded-lg shadow-xl hidden flex justify-around text-center">
+                    <div><p class="text-gray-400 text-sm">MAE</p><p id="mae-text" class="text-xl font-bold text-yellow-400">-</p></div>
+                    <div><p class="text-gray-400 text-sm">RMSE</p><p id="rmse-text" class="text-xl font-bold text-yellow-400">-</p></div>
+                    <div><p class="text-gray-400 text-sm">MAPE</p><p id="mape-text" class="text-xl font-bold text-yellow-400">-</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="api-status" class="mt-6 p-4 rounded-lg text-center"></div>
+    </div>
+    <script src="app.js" defer></script>
+</body>
+</html>
